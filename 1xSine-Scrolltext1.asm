@@ -410,7 +410,7 @@ ss_get_xy_coordinates
 	MOVEF.W	ss_text_columns_number-1,d7
 ss_get_xy_coordinates_loop
 	move.w	(a0,d3.w),d0		; sin(w)
-	MULSF.W ss_text_y_radius*2,d0,d1 ; y'=(yr*sin(w)/2^15
+	MULSF.W ss_text_y_radius*2,d0,d1 ; y' = (yr*sin(w)/2^15
 	swap	d0
 	move.w	d2,d1			; x
 	add.w	d5,d0			; y' + y center

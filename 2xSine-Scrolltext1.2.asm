@@ -730,9 +730,9 @@ ss_sine_scroll_loop1
 	moveq	#ss_text_columns_per_word-1,d6
 ss_sine_scroll_loop2
 	move.w	(a0,d2.w),d0		; sin(w)
-	MULSF.W ss_text_y_radius*4,d0,d1 ; yr'=(yr*sin(w))/2^15
+	MULSF.W ss_text_y_radius*4,d0,d1 ; yr' = (yr*sin(w))/2^15
 	swap	d0
-	muls.w	(a0,d3.w),d0		; y'=(yr'*sin(w))/2^15
+	muls.w	(a0,d3.w),d0		; y' = (yr'*sin(w))/2^15
 	swap	d0
 	add.w	a4,d0			; y' + y center
 	ext.l	d0
