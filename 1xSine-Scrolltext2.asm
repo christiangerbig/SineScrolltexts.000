@@ -577,7 +577,7 @@ ss_chars_offsets
 ss_text
 	DC.B "SINE SCROLLTEXT WITH 1 PIXEL COLUMNS..."
 	REPT ss_text_chars_number/(ss_origin_char_x_size/ss_text_char_x_size)
-		DC.B " "
+	DC.B " "
 	ENDR
 	DC.B FALSE
 	EVEN

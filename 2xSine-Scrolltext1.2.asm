@@ -666,7 +666,7 @@ ss_clear_playfield1
 	move.l	d0,a5
 	move.l	d0,a6
 	REPT ((pf1_plane_width*visible_lines_number*pf1_depth3)/60)
-		movem.l d0-d7/a0-a6,-(a7) ; clear 60 bytes
+	movem.l d0-d7/a0-a6,-(a7) ; clear 60 bytes
 	ENDR
 	movem.l d0-d4,-(a7)		; clear remaining 20 bytes
 	move.l	variables+save_a7(pc),a7
@@ -816,7 +816,7 @@ ss_chars_offsets
 ss_text
 	DC.B "SINE SCROLLTEXT WITH 2 PIXEL COLUMNS..."
 	REPT ss_text_chars_number/(ss_origin_char_x_size/ss_text_char_x_size)
-		DC.B " "
+	DC.B " "
 	ENDR	
 	DC.B FALSE
 	EVEN
