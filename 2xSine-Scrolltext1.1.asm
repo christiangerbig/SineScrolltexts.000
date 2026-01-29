@@ -1,6 +1,6 @@
 ; Requirements
 ; 68000+
-; OCS+
+; OCS PAL+
 ; 1.2+
 
 
@@ -12,7 +12,7 @@
 ; Beam position timing
 
 
-; Execution time MC68000: 270 rasterlines  (184 rasterlines 16x16x2 characters)
+; Execution time 68000: 270 rasterlines  (184 rasterlines 16x16x2 characters)
 
 
 	MC68000
@@ -334,6 +334,7 @@ copperlist2_size		RS.B 0
 cl1_size1			EQU 0
 cl1_size2			EQU 0
 cl1_size3			EQU copperlist1_size
+
 cl2_size1			EQU 0
 cl2_size2			EQU copperlist2_size
 cl2_size3			EQU copperlist2_size
@@ -414,7 +415,8 @@ init_main
 	bsr.s	init_colors
 	bsr.s	ss_init_chars_offsets
 	bsr.s	init_first_copperlist
-	bra	init_second_copperlist
+	bsr	init_second_copperlist
+	rts
 
 
 	CNOP 0,4
@@ -437,7 +439,8 @@ init_first_copperlist
 	bsr	cl1_init_horiz_scroll_blit
 	COP_MOVEQ 0,COPJMP2
 	bsr	cl1_set_bitplane_pointers
-	bra	ss_horiz_scrolltext
+	bsr	ss_horiz_scrolltext
+	rts
 
 
 	COP_INIT_PLAYFIELD_REGISTERS cl1
@@ -524,7 +527,8 @@ init_second_copperlist
 	bsr	set_second_copperlist
 	bsr	swap_playfield1
 	bsr	set_playfield1
-	bra	ss_sine_scroll
+	bsr	ss_sine_scroll
+	rts
 
 
 	CNOP 0,4
@@ -585,7 +589,8 @@ cl2_init_copperlist_branch
 	CNOP 0,4
 main
 	bsr.s	no_sync_routines
-	bra.s	beam_routines
+	bsr.s	beam_routines
+	rts
 
 
 	CNOP 0,4
@@ -731,7 +736,7 @@ ss_sine_scroll_loop2
 	INCLUDE "int-autovectors-handlers.i"
 
 	CNOP 0,4
-nmi_server
+nmi_interrupt_server
 	rts
 
 

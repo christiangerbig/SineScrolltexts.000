@@ -1,6 +1,6 @@
 ; Requirement
 ; 68000+
-; OCS+
+; OCS PAL+
 ; 1.2+
 
 
@@ -11,7 +11,7 @@
 ; are deleted by the character copy blit
 
 
-; Execution time MC68000: 243 rasterlines
+; Execution time 68000: 243 rasterlines
 
 
 	MC68000
@@ -48,7 +48,7 @@
 	INCDIR "custom-includes-ocs:"
 
 
-SET_SECOND_COPPERLIST		SET 1
+START_SECOND_COPPERLIST		SET 1
 MEASURE_RASTERTIME		SET 1
 
 
@@ -318,7 +318,8 @@ init_main
 	bsr.s	init_colors
 	bsr.s	ss_init_chars_offsets
 	bsr.s	init_first_copperlist
-	bra	init_second_copperlist
+	bsr	init_second_copperlist
+	rts
 
 
 	CNOP 0,4
@@ -338,7 +339,8 @@ init_first_copperlist
 	bsr	cl1_init_bitplane_pointers
 	bsr	cl1_init_copper_interrupt
 	COP_LISTEND
-	bra	cl1_set_bitplane_pointers
+	bsr	cl1_set_bitplane_pointers
+	rts
 
 
 	COP_INIT_PLAYFIELD_REGISTERS cl1
@@ -363,7 +365,8 @@ init_second_copperlist
 	CNOP 0,4
 main
 	bsr.s	no_sync_routines
-	bra.s	beam_routines
+	bsr.s	beam_routines
+	rts
 
 
 	CNOP 0,4
@@ -525,7 +528,7 @@ ss_horiz_scroll
 	INCLUDE "int-autovectors-handlers.i"
 
 	CNOP 0,4
-nmi_server
+nmi_interrupt_server
 	rts
 
 

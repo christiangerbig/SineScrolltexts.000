@@ -1,6 +1,6 @@
 ; Requirements
 ; 68000+
-; OCS+
+; OCS PAL+
 ; 1.2+
 
 
@@ -13,7 +13,7 @@
 ; 64 kB aligned playfields
 
 
-; Execution time MC68000: 259 rasterlines
+; Execution time 68000: 259 rasterlines
 
 
 	MC68000
@@ -303,7 +303,7 @@ cl2_ext2_BLTBPTL		RS.L 1
 cl2_ext2_BLTAPTH		RS.L 1
 cl2_ext2_BLTAPTL		RS.L 1
 cl2_ext2_BLTDPTL		RS.L 1
-cl2_ext2_noop		RS.L 1
+cl2_ext2_BLTSIZE		RS.L 1
 cl2_ext2_WAITBLIT		RS.L 1
 
 cl2_extension2_size		RS.B 0
@@ -416,7 +416,8 @@ init_main
 	bsr.s	init_colors
 	bsr.s	ss_init_chars_offsets
 	bsr.s	init_first_copperlist
-	bra	init_second_copperlist
+	bsr	init_second_copperlist
+	rts
 
 
 	CNOP 0,4
@@ -439,7 +440,8 @@ init_first_copperlist
 	bsr	cl1_init_horiz_scroll_blit
 	COP_MOVEQ 0,COPJMP2
 	bsr	cl1_set_bitplane_pointers
-	bra	ss_horiz_scrolltext
+	bsr	ss_horiz_scrolltext
+	rts
 
 
 	COP_INIT_PLAYFIELD_REGISTERS cl1
@@ -526,7 +528,8 @@ init_second_copperlist
 	bsr	set_second_copperlist
 	bsr	swap_playfield1
 	bsr	set_playfield1
-	bra	ss_sine_scroll
+	bsr	ss_sine_scroll
+	rts
 
 
 	CNOP 0,4
@@ -587,7 +590,8 @@ cl2_init_copperlist_branch
 	CNOP 0,4
 main
 	bsr.s	no_sync_routines
-	bra.s	beam_routines
+	bsr.s	beam_routines
+	rts
 
 
 	CNOP 0,4
@@ -765,7 +769,7 @@ ss_sine_scroll_init
 	INCLUDE "int-autovectors-handlers.i"
 
 	CNOP 0,4
-nmi_server
+nmi_interrupt_server
 	rts
 
 
