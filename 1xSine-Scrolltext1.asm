@@ -48,6 +48,7 @@
 
 
 START_SECOND_COPPERLIST		SET 1
+
 MEASURE_RASTERTIME		SET 1
 
 
@@ -231,6 +232,7 @@ copperlist2_size		RS.B 0
 cl1_size1			EQU 0
 cl1_size2			EQU 0
 cl1_size3			EQU copperlist1_size
+
 cl2_size1			EQU 0
 cl2_size2			EQU 0
 cl2_size3			EQU copperlist2_size

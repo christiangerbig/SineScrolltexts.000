@@ -49,6 +49,8 @@
 	INCDIR "custom-includes-ocs:"
 
 
+START_SECOND_COPPERLIST		SET 1
+
 MEASURE_RASTERTIME		SET 1
 
 
@@ -518,15 +520,10 @@ init_second_copperlist
 	bsr	cl2_init_copperlist_branch
 	COP_LISTEND
 	bsr	copy_second_copperlist
+
 	bsr	swap_second_copperlist
-	bsr	set_second_copperlist
-	bsr	swap_playfield1
-	bsr	set_playfield1
 	bsr	ss_sine_scroll
 	bsr	swap_second_copperlist
-	bsr	set_second_copperlist
-	bsr	swap_playfield1
-	bsr	set_playfield1
 	bsr	ss_sine_scroll
 	rts
 
