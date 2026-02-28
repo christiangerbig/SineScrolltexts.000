@@ -311,7 +311,6 @@ init_main_variables
 	move.w	d0,ss_text_table_start(a3)
 	move.w	d0,ss_text_char_x_shift(a3)
 	move.w	d0,ss_text_y_angle(a3)
-
 	rts
 
 
