@@ -277,7 +277,7 @@ cl1_extension3_entry		RS.B cl1_extension3_size
 
 cl1_COPJMP2			RS.L 1
 
-copperlist1_size		RS.B 0
+cl1_copperlist_size		RS.B 0
 
 
 	RSRESET
@@ -330,16 +330,16 @@ cl2_extension3_entry		RS.B cl2_extension3_size
 
 cl2_end				RS.L 1
 
-copperlist2_size		RS.B 0
+cl2_copperlist_size		RS.B 0
 
 
 cl1_size1			EQU 0
 cl1_size2			EQU 0
-cl1_size3			EQU copperlist1_size
+cl1_size3			EQU cl1_copperlist_size
 
 cl2_size1			EQU 0
-cl2_size2			EQU copperlist2_size
-cl2_size3			EQU copperlist2_size
+cl2_size2			EQU cl2_copperlist_size
+cl2_size3			EQU cl2_copperlist_size
 
 
 spr0_x_size1			EQU spr_x_size1
@@ -416,8 +416,8 @@ init_main_variables
 init_main
 	bsr.s	init_colors
 	bsr.s	ss_init_chars_offsets
-	bsr.s	init_first_copperlist
-	bsr	init_second_copperlist
+	bsr.s	cl1_init_copperlist
+	bsr	cl2_init_copperlist
 	rts
 
 
@@ -432,15 +432,16 @@ init_colors
 
 
 	CNOP 0,4
-init_first_copperlist
+cl1_init_copperlist
 	move.l	cl1_display(a3),a0
 	bsr.s	cl1_init_playfield_props
-	bsr.s	cl1_init_bitplane_pointers
+	bsr.s	cl1_init_plane_pointers
 	bsr	cl1_init_copperlist_branch
 	bsr	cl1_init_char_blit
 	bsr	cl1_init_horiz_scroll_blit
 	COP_MOVEQ 0,COPJMP2
-	bsr	cl1_set_bitplane_pointers
+	bsr	cl1_set_plane_pointers
+
 	bsr	ss_horiz_scrolltext
 	rts
 
@@ -469,8 +470,8 @@ cl1_init_char_blit
 	COP_WAITBLIT
 	COP_MOVEQ BC0F_SRCA|BC0F_DEST|ANBNC|ANBC|ABNC|ABC,BLTCON0 ; minterm D = A
 	COP_MOVEQ 0,BLTCON1
-	COP_MOVEQ -1,BLTAFWM
-	COP_MOVEQ -1,BLTALWM
+	COP_MOVEQ -1,BLTAFWM	; no mask
+	COP_MOVEQ -1,BLTALWM	; no mask
 	COP_MOVEQ 0,BLTAPTH
 	COP_MOVEQ 0,BLTAPTL
 	move.l	extra_pf1(a3),d0
@@ -492,7 +493,7 @@ cl1_init_horiz_scroll_blit
 	COP_MOVEQ 0,BLTCON1
 	move.l	extra_pf1(a3),d0
 	move.l	d0,d1			; destination
-	COP_MOVEQ -1,BLTAFWM
+	COP_MOVEQ -1,BLTAFWM		; no mask
 	addq.l	#WORD_SIZE,d0		; skip 16 pixel
 	COP_MOVEQ -1,BLTALWM
 	swap	d0
@@ -513,17 +514,16 @@ cl1_init_horiz_scroll_blit
 
 
 	CNOP 0,4
-init_second_copperlist
+cl2_init_copperlist
 	move.l	cl2_construction2(a3),a0
 	bsr	cl2_init_sine_scroll_const
 	bsr	cl2_init_sine_scroll_blits
 	bsr	cl2_init_copperlist_branch
 	COP_LISTEND
-	bsr	copy_second_copperlist
+	bsr	cl2_copy_copperlist
 
-	bsr	swap_second_copperlist
 	bsr	ss_sine_scroll
-	bsr	swap_second_copperlist
+	bsr	cl2_swap_copperlist
 	bsr	ss_sine_scroll
 	rts
 
@@ -558,12 +558,12 @@ cl2_init_sine_scroll_blits_loop2
 	COP_MOVEQ 0,BLTDPTL
 	COP_MOVEQ ((ss_sine_char_y_size*ss_sine_char_depth)<<6)|(ss_sine_char_x_size/WORD_BITS),BLTSIZE
 	IFEQ ss_text_columns_x_size-1
-		MULUF.W 2,d1		; shift mask 1 bit left
+		MULUF.W 2,d1		; next column
 	ELSE
 		IFEQ ss_text_columns_x_size-2
-			MULUF.W 4,d1	; shift mask 2 bits left
+			MULUF.W 4,d1	; next column
 		ELSE
-			lsl.w	#ss_text_columns_x_size,d1 ; shift mask n bits left
+			lsl.w	#ss_text_columns_x_size,d1 ; next column
 		ENDC
 	ENDC
 	COP_WAITBLIT
@@ -598,10 +598,10 @@ no_sync_routines
 	CNOP 0,4
 beam_routines
 	bsr	wait_beam_position
-	bsr.s	swap_second_copperlist
-	bsr.s	set_second_copperlist
-	bsr.s	swap_playfield1
-	bsr.s	set_playfield1
+	bsr.s	cl2_swap_copperlist
+	bsr.s	cl2_set_copperlist
+	bsr.s	pf1_swap_playfield
+	bsr.s	pf1_set_playfield
 	bsr	ss_horiz_scrolltext
 	bsr	ss_clear_playfield1
 	bsr	ss_sine_scroll
@@ -617,7 +617,7 @@ beam_routines
 	SET_COPPERLIST cl2
 
 
-	SWAP_PLAYFIELD pf1,3
+	SWAP_PLAYFIELD_BUFFERS pf1,3
 
 
 	SET_PLAYFIELD pf1,pf1_depth3
@@ -731,6 +731,7 @@ ss_sine_scroll_loop2
 
 
 	INCLUDE "int-autovectors-handlers.i"
+
 
 	CNOP 0,4
 nmi_interrupt_server

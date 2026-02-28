@@ -224,7 +224,7 @@ cl1_INTREQ			RS.L 1
 
 cl1_end				RS.L 1
 
-copperlist1_size		RS.B 0
+cl1_copperlist_size		RS.B 0
 
 
 	RSRESET
@@ -233,16 +233,16 @@ cl2_begin			RS.B 0
 
 cl2_end				RS.L 1
 
-copperlist2_size		RS.B 0
+cl2_copperlist_size		RS.B 0
 
 
 cl1_size1			EQU 0
 cl1_size2			EQU 0
-cl1_size3			EQU copperlist1_size
+cl1_size3			EQU cl1_copperlist_size
 
 cl2_size1			EQU 0
 cl2_size2			EQU 0
-cl2_size3			EQU copperlist2_size
+cl2_size3			EQU cl2_copperlist_size
 
 
 spr0_x_size1			EQU spr_x_size1
@@ -319,8 +319,8 @@ init_main_variables
 init_main
 	bsr.s	init_colors
 	bsr.s	ss_init_chars_offsets
-	bsr.s	init_first_copperlist
-	bsr	init_second_copperlist
+	bsr.s	cl1_init_copperlist
+	bsr	cl2_init_copperlist
 	rts
 
 
@@ -335,13 +335,13 @@ init_colors
 
 
 	CNOP 0,4
-init_first_copperlist
+cl1_init_copperlist
 	move.l	cl1_display(a3),a0
 	bsr.s	cl1_init_playfield_props
-	bsr	cl1_init_bitplane_pointers
+	bsr	cl1_init_plane_pointers
 	bsr	cl1_init_copper_interrupt
 	COP_LISTEND
-	bsr	cl1_set_bitplane_pointers
+	bsr	cl1_set_plane_pointers
 	rts
 
 
@@ -358,7 +358,7 @@ init_first_copperlist
 
 
 	CNOP 0,4
-init_second_copperlist
+cl2_init_copperlist
 	move.l	cl2_display(a3),a0
 	COP_LISTEND
 	rts
@@ -379,8 +379,8 @@ no_sync_routines
 	CNOP 0,4
 beam_routines
 	bsr	wait_copint
-	bsr.s	swap_playfield1
-	bsr.s	set_playfield1
+	bsr.s	pf1_swap_playfield
+	bsr.s	pf1_set_playfield
 	bsr.s	ss_sine_scroll
 	bsr	ss_horiz_scrolltext
 	bsr	ss_horiz_scroll
@@ -390,7 +390,7 @@ beam_routines
 	rts
 
 
-	SWAP_PLAYFIELD pf1,2
+	SWAP_PLAYFIELD_BUFFERS pf1,2
 
 
 	SET_PLAYFIELD pf1,pf1_depth3,pf1_plane_x_offset,pf1_plane_y_offset
@@ -446,12 +446,12 @@ ss_sine_scroll_loop2
 	ext.l	d0
 	MULUF.L pf1_plane_width*pf1_depth3,d0,d1 ; y offset in destination2
 	IFEQ ss_text_columns_x_size-1
-		MULUF.W 2,d4		; shift mask 1 bit left
+		MULUF.W 2,d4		; next column
 	ELSE
 		IFEQ ss_text_columns_x_size-2
-			MULUF.W 4,d4	; shift mask 2 bits lefr
+			MULUF.W 4,d4	; next column
 		ELSE
-			lsl.w	#ss_text_columns_x_size,d4 ; shift mask n bits left
+			lsl.w	#ss_text_columns_x_size,d4 ; next column
 		ENDC
 	ENDC
 	add.l	a5,d0			; add destination2 address
@@ -477,8 +477,8 @@ ss_sine_scroll_init
 	moveq	#0,d0
 	WAITBLIT
 	move.w	d0,BLTCON1-DMACONR(a6)
-	moveq	#FALSE,d0
-	move.w	d0,BLTAFWM-DMACONR(a6)
+	moveq	#-1,d0
+	move.w	d0,BLTAFWM-DMACONR(a6)	; no mask
 	move.l	#((pf1_plane_width-ss_sine_char_width)<<16)|(extra_pf1_plane_width-ss_sine_char_width),BLTBMOD-DMACONR(a6) ; B&A moduli
 	move.w	#pf1_plane_width-ss_sine_char_width,BLTDMOD-DMACONR(a6)
 	rts
@@ -496,7 +496,7 @@ ss_horiz_scrolltext
 	WAITBLIT
 	move.l	#(BC0F_SRCA|BC0F_DEST|ANBNC|ANBC|ABNC|ABC)<<16,BLTCON0-DMACONR(a6) ; minterm D = A
 	moveq	#-1,d3
-	move.l	d3,BLTAFWM-DMACONR(a6)
+	move.l	d3,BLTAFWM-DMACONR(a6)	; no mask
 	move.l	d0,BLTAPT-DMACONR(a6)	; character image
 	move.l	d1,BLTDPT-DMACONR(a6)	; playfield write
 	move.l	#((ss_image_plane_width-ss_text_char_width)<<16)|(extra_pf1_plane_width-ss_text_char_width),BLTAMOD-DMACONR(a6) ; A&D moduli
@@ -518,7 +518,7 @@ ss_horiz_scroll
 	WAITBLIT
 	move.l	#((-ss_horiz_scroll_speed<<12)|BC0F_SRCA|BC0F_DEST|ANBNC|ANBC|ABNC|ABC)<<16,BLTCON0-DMACONR(a6) ; minterm D = A
 	moveq	#-1,d0
-	move.l	d0,BLTAFWM-DMACONR(a6)
+	move.l	d0,BLTAFWM-DMACONR(a6)	; no mask
 	move.l	a0,BLTDPT-DMACONR(a6)	; 1st line in destination
 	addq.w	#WORD_SIZE,a0		; 1st line, skip 16 pixel
 	move.l	a0,BLTAPT-DMACONR(a6)	; source
@@ -528,6 +528,7 @@ ss_horiz_scroll
 
 
 	INCLUDE "int-autovectors-handlers.i"
+
 
 	CNOP 0,4
 nmi_interrupt_server

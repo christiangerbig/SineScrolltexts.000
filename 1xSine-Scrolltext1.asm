@@ -216,7 +216,7 @@ cl1_INTREQ			RS.L 1
 
 cl1_end				RS.L 1
 
-copperlist1_size		RS.B 0
+cl1_copperlist_size		RS.B 0
 
 
 
@@ -226,16 +226,16 @@ cl2_begin			RS.B 0
 
 cl2_end				RS.L 1
 
-copperlist2_size		RS.B 0
+cl2_copperlist_size		RS.B 0
 
 
 cl1_size1			EQU 0
 cl1_size2			EQU 0
-cl1_size3			EQU copperlist1_size
+cl1_size3			EQU cl1_copperlist_size
 
 cl2_size1			EQU 0
 cl2_size2			EQU 0
-cl2_size3			EQU copperlist2_size
+cl2_size3			EQU cl2_copperlist_size
 
 
 spr0_x_size1			EQU spr_x_size1
@@ -310,8 +310,8 @@ init_main_variables
 init_main
 	bsr.s	init_colors
 	bsr.s	ss_init_chars_offsets
-	bsr.s	init_first_copperlist
-	bsr	init_second_copperlist
+	bsr.s	cl1_init_copperlist
+	bsr	cl2_init_copperlist
 	rts
 
 
@@ -326,13 +326,13 @@ init_colors
 
 
 	CNOP 0,4
-init_first_copperlist
+cl1_init_copperlist
 	move.l	cl1_display(a3),a0
 	bsr.s	cl1_init_playfield_props
-	bsr	cl1_init_bitplane_pointers
+	bsr	cl1_init_plane_pointers
 	bsr	cl1_init_copper_interrupt
 	COP_LISTEND
-	bsr	cl1_set_bitplane_pointers
+	bsr	cl1_set_plane_pointers
 	rts
 
 
@@ -349,7 +349,7 @@ init_first_copperlist
 
 
 	CNOP 0,4
-init_second_copperlist
+cl2_init_copperlist
 	move.l	cl2_display(a3),a0
 	COP_LISTEND
 	rts
@@ -370,8 +370,8 @@ no_sync_routines
 	CNOP 0,4
 beam_routines
 	bsr	wait_copint
-	bsr.s	swap_playfield1
-	bsr.s	set_playfield1
+	bsr.s	pf1_swap_playfield
+	bsr.s	pf1_set_playfield
 	bsr	ss_sine_scroll
 	bsr	ss_clear_playfield1
 	bsr	ss_get_xy_coordinates
@@ -383,7 +383,7 @@ beam_routines
 	rts
 
 
-	SWAP_PLAYFIELD pf1,3
+	SWAP_PLAYFIELD_BUFFERS pf1,3
 
 
 	SET_PLAYFIELD pf1,pf1_depth3
@@ -410,7 +410,7 @@ ss_get_xy_coordinates
 	MOVEF.W	(sine_table_length-1)*WORD_SIZE,d6 ; overflow 360°
 	and.w	d6,d4			; remove overflow
 	move.w	d4,ss_text_y_angle(a3)
-	;moveq	#ss_text_y_radius*2,d4
+; 	moveq	#ss_text_y_radius*2,d4
 	moveq	#ss_text_y_center,d5
 	MOVEF.W	ss_text_columns_number-1,d7
 ss_get_xy_coordinates_loop
@@ -458,7 +458,7 @@ ss_sine_scroll_loop
 	move.l	d0,(a3)			; BLTAPT scrolltext
 	move.l	d1,(a4)			; BLTDPTH playfield write
 	move.w	d6,(a5)			; BLTSIZE
-	ror.w	#ss_text_columns_x_size,d2 ; rotate mask n bits right
+	ror.w	#ss_text_columns_x_size,d2 ; next column
 	dbf	d7,ss_sine_scroll_loop
 	move.w	#DMAF_BLITHOG,DMACON-DMACONR(a6)
 	movem.l (a7)+,a3-a5
@@ -487,7 +487,7 @@ ss_horiz_scrolltext
 	WAITBLIT
 	move.l	#(BC0F_SRCA|BC0F_DEST|ANBNC|ANBC|ABNC|ABC)<<16,BLTCON0-DMACONR(a6) ; minterm D = A
 	moveq	#-1,d3
-	move.l	d3,BLTAFWM-DMACONR(a6)
+	move.l	d3,BLTAFWM-DMACONR(a6)	; no mask
 	move.l	d0,BLTAPT-DMACONR(a6)	; character image
 	move.l	d1,BLTDPT-DMACONR(a6)	; playfield write
 	move.l	#((ss_image_plane_width-ss_text_char_width)<<16)|(extra_pf1_plane_width-ss_text_char_width),BLTAMOD-DMACONR(a6) ; A&D moduli
@@ -507,7 +507,7 @@ ss_horiz_scroll
 	WAITBLIT
 	move.l	#((-ss_horiz_scroll_speed<<12)|BC0F_SRCA|BC0F_DEST|ANBNC|ANBC|ABNC|ABC)<<16,BLTCON0-DMACONR(a6) ; minterm D = A
 	moveq	#-1,d0
-	move.l	d0,BLTAFWM-DMACONR(a6)
+	move.l	d0,BLTAFWM-DMACONR(a6)	; no mask
 	move.l	a0,BLTDPT-DMACONR(a6)
 	addq.w	#WORD_SIZE,a0		; skip 16 pixel
 	move.l	a0,BLTAPT-DMACONR(a6)
@@ -517,6 +517,7 @@ ss_horiz_scroll
 
 
 	INCLUDE "int-autovectors-handlers.i"
+
 
 	CNOP 0,4
 nmi_interrupt_server

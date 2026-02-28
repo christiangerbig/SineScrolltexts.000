@@ -1,4 +1,4 @@
-You also need these folders in conjunction with the project:
+You also need these folders in conjunction with the routines:
 
 [include 3.5](https://github.com/christiangerbig/include-3.5)
 
