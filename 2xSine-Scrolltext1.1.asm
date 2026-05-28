@@ -423,7 +423,7 @@ init_main
 
 	CNOP 0,4
 init_colors
-	CPU_INIT_COLOR COLOR00,4,pf1_rgb4_color_table
+	CPU_LOAD_COLORMAP COLOR00,4,pf1_rgb4_color_table
 	rts
 
 
@@ -445,12 +445,9 @@ cl1_init_copperlist
 	bsr	ss_horiz_scrolltext
 	rts
 
-
 	COP_INIT_PLAYFIELD_REGISTERS cl1
 
-
 	COP_INIT_BITPLANE_POINTERS cl1
-
 
 	CNOP 0,4
 cl1_init_copperlist_branch
@@ -463,7 +460,6 @@ cl1_init_copperlist_branch
 	COP_MOVE d0,COP1LCL
 	COP_MOVEQ 0,COPJMP1
 	rts
-
 
 	CNOP 0,4
 cl1_init_char_blit
@@ -484,7 +480,6 @@ cl1_init_char_blit
 	COP_MOVEQ extra_pf1_plane_width-ss_text_char_width,BLTDMOD
 	COP_MOVEQ ((ss_text_char_y_size*ss_text_char_depth)<<6)|(ss_text_char_x_size/WORD_BITS),BLTSIZE
 	rts
-
 
 	CNOP 0,4
 cl1_init_horiz_scroll_blit
@@ -509,7 +504,6 @@ cl1_init_horiz_scroll_blit
 	COP_MOVEQ ((ss_horiz_scroll_window_y_size*ss_horiz_scroll_window_depth)<<6)|(ss_horiz_scroll_window_x_size/WORD_BITS),BLTSIZE
 	rts
 
-
 	COP_SET_BITPLANE_POINTERS cl1,display,pf1_depth3
 
 
@@ -518,7 +512,7 @@ cl2_init_copperlist
 	move.l	cl2_construction2(a3),a0
 	bsr	cl2_init_sine_scroll_const
 	bsr	cl2_init_sine_scroll_blits
-	bsr	cl2_init_copperlist_branch
+	bsr	cl2_init_copperlist_restart
 	COP_LISTEND
 	bsr	cl2_copy_copperlist
 
@@ -526,7 +520,6 @@ cl2_init_copperlist
 	bsr	cl2_swap_copperlist
 	bsr	ss_sine_scroll
 	rts
-
 
 	CNOP 0,4
 cl2_init_sine_scroll_const
@@ -536,7 +529,6 @@ cl2_init_sine_scroll_const
 	COP_MOVEQ extra_pf1_plane_width-ss_text_char_width,BLTAMOD
 	COP_MOVEQ pf1_plane_width-ss_text_char_width,BLTDMOD
 	rts
-
 
 	CNOP 0,4
 cl2_init_sine_scroll_blits
@@ -572,13 +564,11 @@ cl2_init_sine_scroll_blits_loop2
 	dbf	d7,cl2_init_sine_scroll_blits_loop1
 	rts
 
-
 	CNOP 0,4
-cl2_init_copperlist_branch
+cl2_init_copperlist_restart
 	COP_MOVE cl1_display(a3),COP1LCH
 	COP_MOVE cl1_display+WORD_SIZE(a3),COP1LCL
 	rts
-
 
 	COPY_COPPERLIST cl2,2
 

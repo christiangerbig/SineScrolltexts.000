@@ -325,7 +325,7 @@ init_main
 
 	CNOP 0,4
 init_colors
-	CPU_INIT_COLOR COLOR00,2,pf1_rgb4_color_table
+	CPU_LOAD_COLORMAP COLOR00,2,pf1_rgb4_color_table
 	rts
 
 
